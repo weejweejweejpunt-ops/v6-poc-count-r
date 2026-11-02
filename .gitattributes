@@ -1,0 +1,3 @@
+# Always LF in the repository and in the working copy: the Makefile and Dockerfile are built on Linux (CI),
+# and this silences the "LF will be replaced by CRLF" warnings on Windows.
+* text=auto eol=lf

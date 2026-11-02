@@ -1,0 +1,88 @@
+{
+  "name": "POC - Count per value (R)",
+  "image": "ghcr.io/weejweejweejpunt-ops/v6-poc-count-r",
+  "vantage6_version": "5.0.3",
+  "code_url": "https://github.com/weejweejweejpunt-ops/v6-poc-count-r",
+  "documentation_url": "",
+  "partitioning": "horizontal",
+  "description": "Count the rows of a dataframe per value of one column over all participating organizations. The counting is done in R; Python only handles the vantage6 communication. Default: persons per gender (gender_concept_id of the OMOP person table).",
+  "functions": [
+    {
+      "name": "central_count",
+      "display_name": "Central count (R)",
+      "standalone": true,
+      "description": "Count the rows per value of a column over all organizations and add them up (in R).",
+      "step_type": "central_compute",
+      "ui_visualizations": [
+        {
+          "name": "Count per value",
+          "description": "Number of rows per value of the chosen column",
+          "type": "table",
+          "schema": {
+            "location": ["table"]
+          }
+        }
+      ],
+      "arguments": [
+        {
+          "name": "column_name",
+          "display_name": "Column",
+          "description": "Column to count the values of",
+          "type": "column",
+          "has_default_value": true,
+          "default_value": "gender_concept_id",
+          "is_frontend_only": false
+        },
+        {
+          "name": "min_cell_size",
+          "display_name": "Minimum cell size",
+          "description": "Values that occur fewer times at a node are reported as null. 0 switches this off.",
+          "type": "integer",
+          "has_default_value": true,
+          "default_value": "0",
+          "is_frontend_only": false
+        }
+      ],
+      "databases": [
+        {
+          "name": "Database",
+          "description": "Dataframe to count in"
+        }
+      ]
+    },
+    {
+      "name": "partial_count",
+      "display_name": "Partial count (R)",
+      "standalone": true,
+      "description": "Count the rows per value of a column for a single organization (in R).",
+      "step_type": "federated_compute",
+      "ui_visualizations": [],
+      "arguments": [
+        {
+          "name": "column_name",
+          "display_name": "Column",
+          "description": "Column to count the values of",
+          "type": "column",
+          "has_default_value": true,
+          "default_value": "gender_concept_id",
+          "is_frontend_only": false
+        },
+        {
+          "name": "min_cell_size",
+          "display_name": "Minimum cell size",
+          "description": "Values that occur fewer times are reported as null. 0 switches this off.",
+          "type": "integer",
+          "has_default_value": true,
+          "default_value": "0",
+          "is_frontend_only": false
+        }
+      ],
+      "databases": [
+        {
+          "name": "Database",
+          "description": "Dataframe to count in"
+        }
+      ]
+    }
+  ]
+}

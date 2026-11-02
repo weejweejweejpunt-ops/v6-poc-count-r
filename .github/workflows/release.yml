@@ -1,0 +1,38 @@
+name: Create Release
+
+# Pushing a tag such as 0.1.0 builds the Docker image and pushes it to ghcr.io.
+# The build itself is done by the shared vantage6 workflow (pinned to a commit), which calls
+# `make image ... PUSH_REG=true` from the Makefile in this repository.
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+# The shared workflow needs these permissions; a caller must grant them explicitly (the default
+# token permissions of a new personal repository are read-only).
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    uses: vantage6/vantage6-workflows/.github/workflows/algorithm-release.yml@5fa2c79619a7660dda02b2c80623fc010f66d661
+    secrets: inherit
+    with:
+      docker_image: ghcr.io/weejweejweejpunt-ops/v6-poc-count-r
+
+  # The algorithm store looks up the image digest with an Accept header for the plain Docker v2 manifest only (vantage6-common
+  # 5.0.3, get_digest). An OCI image index, which a recent buildx pushes by default, gives HTTP 404 there, and the store
+  # then cannot resolve the image. Fail the release if that happens. (Needs a public package.)
+  verify-store-compatible:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: The algorithm store can read the manifest
+        run: |
+          IMAGE=weejweejweejpunt-ops/v6-poc-count-r
+          TOKEN=$(curl -fsS "https://ghcr.io/token?scope=repository:${IMAGE}:pull" | python3 -c 'import sys, json; print(json.load(sys.stdin)["token"])')
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/vnd.docker.distribution.manifest.v2+json" "https://ghcr.io/v2/${IMAGE}/manifests/latest")
+          echo "HTTP ${CODE} for the manifest with the Accept header of the algorithm store"
+          test "${CODE}" = "200"

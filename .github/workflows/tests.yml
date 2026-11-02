@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # pinned to: https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # pinned to: https://github.com/actions/setup-python/releases/tag/v6.2.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.13"
+
+      # The same R packages as in the Dockerfile, plus testthat for the R tests.
+      - name: Install R
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends r-base-core r-cran-jsonlite r-cran-testthat
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install the project and its test dependencies
+        run: uv sync
+
+      - name: Run the tests
+        run: uv run pytest
